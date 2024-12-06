@@ -182,6 +182,9 @@ logging.basicConfig(level=logging.DEBUG)
 parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
 parser.add_argument('file', metavar='file', type=str,
                    help='The file to play')
+args = parser.parse_args()
+print(args)
+script = find_script(args.file)
 
 client = HandyClient(config.API_SECRET)
 manager = TSIManager(client)
@@ -200,9 +203,6 @@ if data['mode'] != 1:
 
 print('Handy connected, Uploading script!')
 
-args = parser.parse_args()
-print(args)
-script = find_script(args.file)
 client.upload_script(script)
 
 
