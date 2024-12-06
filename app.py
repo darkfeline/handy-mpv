@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 from datetime import datetime
 import io
 import json
@@ -41,6 +42,12 @@ parser.add_argument('file', metavar='file', type=str,
 # this code is actually really dumb, should refactor, an intern probably
 # did this. I'm just copying the JS code from the site.
 
+@dataclass
+class TimeSyncInfo:
+    last_saved: int
+    average_offset: int
+    initial_offset: int
+
 class TSIManager:
 
     def save_to(self, path: str):
@@ -54,14 +61,20 @@ class TSIManager:
                 "time_sync_initial_offset": time_sync_initial_offset
             }, f)
 
-    def load(self, path: str):
+    def load(self, path: str) -> TimeSyncInfo:
         if not os.path.exists(path):
-            fp = open(path, 'w')
-            fp.write('{"last_saved": 0}')
-            fp.close()
+            return TimeSyncInfo(
+                last_saved=0,
+                average_offset=0,
+                initial_offset=0,
+            )
         with open(path, 'r') as f:
-            time = json.load(f)
-            return time
+            obj = json.load(f)
+            return TimeSyncInfo(
+                last_saved=obj['last_saved'],
+                average_offset=obj['time_sync_average_offset'],
+                initial_offset=obj['time_sync_initial_offset'],
+            )
 
     def get_server_time(self):
         time_now = int(time.time_ns() / 1000000)
@@ -134,11 +147,11 @@ script = find_script(args.file)
 upload_script(script)
 
 
-saved_time = manager.load(config.TIME_SYNC_FILE)
+tsi = manager.load(config.TIME_SYNC_FILE)
 
-if  time.time_ns() - saved_time['last_saved'] < 3600000000000:
-    time_sync_average_offset = saved_time['time_sync_average_offset']
-    time_sync_initial_offset = saved_time['time_sync_initial_offset']
+if  time.time_ns() - tsi.last_saved < 3600000000000:
+    time_sync_average_offset = tsi.average_offset
+    time_sync_initial_offset = tsi.initial_offset
 else :
     manager.update_server_time()
     manager.save_to(config.TIME_SYNC_FILE)
