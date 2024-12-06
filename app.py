@@ -67,9 +67,22 @@ class TimeSyncInfo:
                 'time_sync_initial_offset': self.initial_offset,
             }, f)
 
+class HandyClient:
+
+    API_ENDPOINT="https://www.handyfeeling.com/api/handy/v2/"
+
+    def __init__(self, api_secret: str):
+        self.headers = {'X-Connection-Key': api_secret}
+
+    def servertime(self) -> int:
+        r = requests.get(f'{self.API_ENDPOINT}servertime', headers=self.headers)
+        data = json.loads(r.text)
+        return data['serverTime']
+
 class TSIManager:
 
-    def __init__(self):
+    def __init__(self, client: HandyClient):
+        self.client = client
         self.aggregate_offset: int = 0
         self.sync_count: int = 0
         self.average_offset: float = 0
@@ -92,9 +105,7 @@ class TSIManager:
 
     def update_server_time(self):
         send_time = time_ms()
-        r = requests.get(f'{API_ENDPOINT}servertime', headers=HEADERS)
-        data = json.loads(r.text)
-        server_time = data['serverTime']
+        server_time = self.client.servertime()
         print(server_time)
         time_now = time_ms()
         print(time_now)
@@ -117,7 +128,8 @@ class TSIManager:
             print(f'we in sync, Average offset is: {int(self.average_offset)} ms')
             return
 
-manager = TSIManager()
+client = HandyClient(config.API_SECRET)
+manager = TSIManager(client)
 
 
 def find_script(video_path):
