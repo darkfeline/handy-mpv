@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import io
 import json
+import logging
 import os
 import sys
 import time
@@ -28,6 +29,9 @@ HOUR_NS = 3600_000_000_000
 HEADERS = {
     'X-Connection-Key': API_SECRET
 }
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
 parser.add_argument('file', metavar='file', type=str,
@@ -82,7 +86,7 @@ class HandyClient:
     def upload_script(self, path: str) -> None:
         r = requests.post("https://tugbud.kaffesoft.com/cache", files={'file': open(path, 'rb')})
         data = json.loads(r.text)
-        print(data)
+        logger.debug('Got response from cache %s', data)
         r = requests.put(f'{self.API_ENDPOINT}hssp/setup', json={'url': data['url']}, headers=self.headers)
         data = json.loads(r.text)
 
