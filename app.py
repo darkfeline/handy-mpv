@@ -205,6 +205,13 @@ def find_script(video_path: str) -> str:
     script_path = f'{video_name}.funscript'
     return script_path
 
+def get_playback_time_ms(player: mpv.MPV) -> Optional[int]:
+    value = player._get_property('playback-time')
+    if value is None:
+        return value
+    assert isinstance(value, float)
+    return int(value * 1000)
+
 
 logging.basicConfig(level=logging.DEBUG)
 parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
@@ -239,13 +246,6 @@ hplayer = HandyPlayer(
     player=player,
 )
 player.play(args.file)
-
-def get_playback_time_ms(player) -> Optional[int]:
-    value = player._get_property('playback-time')
-    if value is None:
-        return value
-    assert isinstance(value, float)
-    return int(value * 1000)
 
 # @player.on_key_press('up')
 def my_up_binding(key_state, key_name, key_char):
