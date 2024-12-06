@@ -54,12 +54,12 @@ class TSIManager:
                 "time_sync_initial_offset": time_sync_initial_offset
             }, f)
 
-    def load(self):
-        if not os.path.exists(config.TIME_SYNC_FILE):
-            fp = open(config.TIME_SYNC_FILE, 'w')
+    def load(self, path: str):
+        if not os.path.exists(path):
+            fp = open(path, 'w')
             fp.write('{"last_saved": 0}')
             fp.close()
-        with open(config.TIME_SYNC_FILE, 'r') as f:
+        with open(path, 'r') as f:
             time = json.load(f)
             return time
 
@@ -134,7 +134,7 @@ script = find_script(args.file)
 upload_script(script)
 
 
-saved_time = manager.load()
+saved_time = manager.load(config.TIME_SYNC_FILE)
 
 if  time.time_ns() - saved_time['last_saved'] < 3600000000000:
     time_sync_average_offset = saved_time['time_sync_average_offset']
