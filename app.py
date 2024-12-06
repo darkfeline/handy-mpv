@@ -86,7 +86,7 @@ class HandyClient:
     def upload_script(self, path: str) -> None:
         r = requests.post("https://tugbud.kaffesoft.com/cache", files={'file': open(path, 'rb')})
         data = json.loads(r.text)
-        logger.debug('Got response from cache %s', data)
+        logger.debug('Got response from cache %r', data)
         r = requests.put(f'{self.API_ENDPOINT}hssp/setup', json={'url': data['url']}, headers=self.headers)
         data = json.loads(r.text)
 
