@@ -41,59 +41,63 @@ parser.add_argument('file', metavar='file', type=str,
 # this code is actually really dumb, should refactor, an intern probably
 # did this. I'm just copying the JS code from the site.
 
-def save_server_time():
-    if not os.path.exists(config.TIME_SYNC_FILE):
-        fp = open(config.TIME_SYNC_FILE, 'x')
-        fp.close()
-    with open(config.TIME_SYNC_FILE, 'w') as f:
-        json.dump({
-            "last_saved": time.time_ns(),
-            "time_sync_average_offset": time_sync_average_offset,
-            "time_sync_initial_offset": time_sync_initial_offset
-        }, f)
+class TSIManager:
 
-def get_saved_time():
-    if not os.path.exists(config.TIME_SYNC_FILE):
-        fp = open(config.TIME_SYNC_FILE, 'w')
-        fp.write('{"last_saved": 0}')
-        fp.close()
-    with open(config.TIME_SYNC_FILE, 'r') as f:
-        time = json.load(f)
-        return time
+    def save_server_time(self):
+        if not os.path.exists(config.TIME_SYNC_FILE):
+            fp = open(config.TIME_SYNC_FILE, 'x')
+            fp.close()
+        with open(config.TIME_SYNC_FILE, 'w') as f:
+            json.dump({
+                "last_saved": time.time_ns(),
+                "time_sync_average_offset": time_sync_average_offset,
+                "time_sync_initial_offset": time_sync_initial_offset
+            }, f)
 
-def get_server_time():
-    time_now = int(time.time_ns() / 1000000)
-    return int(time_now + time_sync_average_offset + time_sync_initial_offset)
+    def get_saved_time(self):
+        if not os.path.exists(config.TIME_SYNC_FILE):
+            fp = open(config.TIME_SYNC_FILE, 'w')
+            fp.write('{"last_saved": 0}')
+            fp.close()
+        with open(config.TIME_SYNC_FILE, 'r') as f:
+            time = json.load(f)
+            return time
 
-def update_server_time():
-    global time_sync_initial_offset, time_sync_aggregate_offset, \
-            time_sync_average_offset, time_syncs
+    def get_server_time(self):
+        time_now = int(time.time_ns() / 1000000)
+        return int(time_now + time_sync_average_offset + time_sync_initial_offset)
 
-    send_time = int(time.time_ns() / 1000000) # don't ask
-    r = requests.get(f'{API_ENDPOINT}servertime', headers=HEADERS)
-    data = json.loads(r.text)
-    server_time = data['serverTime']
-    print(server_time)
-    time_now = int(time.time_ns() / 1000000)
-    print(time_now)
-    rtd = time_now - send_time
-    estimated_server_time_now = int(server_time + rtd / 2)
+    def update_server_time(self):
+        global time_sync_initial_offset, time_sync_aggregate_offset, \
+                time_sync_average_offset, time_syncs
 
-    # this part here, real dumb.
-    if time_syncs == 0:
-        time_sync_initial_offset = estimated_server_time_now - time_now
-        print(f'initial offset {time_sync_initial_offset} ms')
-    else:
-        offset = estimated_server_time_now - time_now - time_sync_initial_offset
-        time_sync_aggregate_offset += offset
-        time_sync_average_offset = time_sync_aggregate_offset / time_syncs
+        send_time = int(time.time_ns() / 1000000) # don't ask
+        r = requests.get(f'{API_ENDPOINT}servertime', headers=HEADERS)
+        data = json.loads(r.text)
+        server_time = data['serverTime']
+        print(server_time)
+        time_now = int(time.time_ns() / 1000000)
+        print(time_now)
+        rtd = time_now - send_time
+        estimated_server_time_now = int(server_time + rtd / 2)
 
-    time_syncs += 1
-    if time_syncs < 30:
-        update_server_time()
-    else:
-        print(f'we in sync, Average offset is: {int(time_sync_average_offset)} ms')
-        return
+        # this part here, real dumb.
+        if time_syncs == 0:
+            time_sync_initial_offset = estimated_server_time_now - time_now
+            print(f'initial offset {time_sync_initial_offset} ms')
+        else:
+            offset = estimated_server_time_now - time_now - time_sync_initial_offset
+            time_sync_aggregate_offset += offset
+            time_sync_average_offset = time_sync_aggregate_offset / time_syncs
+
+        time_syncs += 1
+        if time_syncs < 30:
+            self.update_server_time()
+        else:
+            print(f'we in sync, Average offset is: {int(time_sync_average_offset)} ms')
+            return
+
+manager = TSIManager()
 
 
 def find_script(video_path):
@@ -130,14 +134,14 @@ script = find_script(args.file)
 upload_script(script)
 
 
-saved_time = get_saved_time()
+saved_time = manager.get_saved_time()
 
 if  time.time_ns() - saved_time['last_saved'] < 3600000000000:
     time_sync_average_offset = saved_time['time_sync_average_offset']
     time_sync_initial_offset = saved_time['time_sync_initial_offset']
 else :
-    update_server_time()
-    save_server_time()
+    manager.update_server_time()
+    manager.save_server_time()
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
@@ -152,7 +156,7 @@ sync = 0
 
 def sync_play(time=0, play='true'):
     payload = {
-        'estimatedServerTime': get_server_time(),
+        'estimatedServerTime': manager.get_server_time(),
         'startTime': time
     }
 
