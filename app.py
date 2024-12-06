@@ -1,17 +1,17 @@
 #!/usr/bin/python3
 
-from mpv import ShutdownError
-from PIL import Image, ImageDraw, ImageFont
-from time import sleep, time_ns
 import argparse
+from datetime import datetime
+import io
 import json
 import os
 from os.path import exists
-import io
 import sys
-from datetime import datetime
+from time import sleep, time_ns
 
 import mpv
+from mpv import ShutdownError
+from PIL import Image, ImageDraw, ImageFont
 import requests
 
 import config
