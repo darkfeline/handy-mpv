@@ -36,41 +36,41 @@ class HandyClient:
         self.headers = {'X-Connection-Key': api_secret}
 
     def servertime(self) -> int:
-        logger.debug('handyclient: servertime request')
+        logger.debug('servertime request')
         r = requests.get(f'{self.API_ENDPOINT}servertime', headers=self.headers)
         data = json.loads(r.text)
-        logger.debug('handyclient: servertime response: %r', data)
+        logger.debug('servertime response: %r', data)
         return data['serverTime']
 
     def upload_script(self, path: str) -> None:
-        logger.debug('handyclient: upload_script request: %r', path)
+        logger.debug('upload_script request: %r', path)
         r = requests.post("https://tugbud.kaffesoft.com/cache", files={'file': open(path, 'rb')})
         data = json.loads(r.text)
-        logger.debug('handyclient: upload_script response: %r', data)
+        logger.debug('upload_script response: %r', data)
         r = requests.put(f'{self.API_ENDPOINT}hssp/setup', json={'url': data['url']}, headers=self.headers)
         data = json.loads(r.text)
 
     def status(self) -> dict:
-        logger.debug('handyclient: status request')
+        logger.debug('status request')
         r = requests.get(f'{self.API_ENDPOINT}status', headers=self.headers)
         data = json.loads(r.text)
         logger.debug('handyclient: status response: %r', data)
         return data
 
     def set_mode(self, mode: int) -> None:
-        logger.debug('handyclient: set mode request')
+        logger.debug('set_mode request')
         r = requests.put(f'{self.API_ENDPOINT}mode', json={"mode": mode}, headers=self.headers)
-        logger.debug('handyclient: set mode response: %r', r.text)
+        logger.debug('set_mode response: %r', r.text)
 
     def stop(self) -> None:
-        logger.debug('handyclient: stop request')
+        logger.debug('stop request')
         r = requests.put(f'{self.API_ENDPOINT}hssp/stop', headers=self.headers)
-        logger.debug('handyclient: stop response: %r', r.text)
+        logger.debug('stop response: %r', r.text)
 
     def play(self, obj: dict) -> None:
-        logger.debug('handyclient: play request')
+        logger.debug('play request')
         r = requests.put(f'{self.API_ENDPOINT}hssp/play', json=obj, headers=self.headers)
-        logger.debug('handyclient: play response: %r', r.text)
+        logger.debug('play response: %r', r.text)
 
 @dataclass
 class TimeSyncInfo:
