@@ -42,18 +42,14 @@ parser.add_argument('file', metavar='file', type=str,
 
 @dataclass
 class TimeSyncInfo:
-    last_saved: int
-    average_offset: float
-    initial_offset: int
+    last_saved: int = 0
+    average_offset: float = 0
+    initial_offset: int = 0
 
     @staticmethod
     def from_file(path: str) -> TimeSyncInfo:
         if not os.path.exists(path):
-            return TimeSyncInfo(
-                last_saved=0,
-                average_offset=0,
-                initial_offset=0,
-            )
+            return TimeSyncInfo()
         with open(path, 'r') as f:
             obj = json.load(f)
             return TimeSyncInfo(
