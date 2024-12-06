@@ -23,12 +23,7 @@ import config
 
 HOUR_NS = 3600_000_000_000
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
-parser.add_argument('file', metavar='file', type=str,
-                   help='The file to play')
 
 def time_ms() -> int:
     return int(time.time_ns() / 1000000)
@@ -145,6 +140,11 @@ class TSIManager:
         else:
             print(f'we in sync, Average offset is: {int(self.average_offset)} ms')
             return
+
+logging.basicConfig(level=logging.DEBUG)
+parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
+parser.add_argument('file', metavar='file', type=str,
+                   help='The file to play')
 
 client = HandyClient(config.API_SECRET)
 manager = TSIManager(client)
