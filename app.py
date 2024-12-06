@@ -37,9 +37,6 @@ parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
 parser.add_argument('file', metavar='file', type=str,
                    help='The file to play')
 
-# this code is actually really dumb, should refactor, an intern probably
-# did this. I'm just copying the JS code from the site.
-
 def time_ms() -> int:
     return int(time.time_ns() / 1000000)
 
