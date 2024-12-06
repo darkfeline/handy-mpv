@@ -153,6 +153,13 @@ def setup_manager(manager: TSIManager, config) -> None:
         manager.update_server_time()
         manager.save_to(config.TIME_SYNC_FILE)
 
+def find_script(video_path: str) -> str:
+    video_name = video_path.replace('.' + str.split(video_path, '.')[-1:][0], '')
+    script_path = f'{video_name}.funscript'
+    if (os.path.exists(script_path)):
+        print(f'script found for video: {video_name}')
+    return script_path
+
 
 logging.basicConfig(level=logging.DEBUG)
 parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
@@ -162,13 +169,6 @@ parser.add_argument('file', metavar='file', type=str,
 client = HandyClient(config.API_SECRET)
 manager = TSIManager(client)
 
-
-def find_script(video_path):
-    video_name = video_path.replace('.' + str.split(video_path, '.')[-1:][0], '')
-    script_path = f'{video_name}.funscript'
-    if (os.path.exists(script_path)):
-        print(f'script found for video: {video_name}')
-    return script_path
 
 print('Getting Handy Status')
 data = client.status()
