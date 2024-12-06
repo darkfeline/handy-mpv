@@ -25,6 +25,7 @@ import config
 API_SECRET=config.API_SECRET
 API_ENDPOINT="https://www.handyfeeling.com/api/handy/v2/"
 
+HOUR_NS = 3600_000_000_000
 
 HEADERS = {
     'X-Connection-Key': API_SECRET
@@ -160,9 +161,9 @@ if os.path.exists(config.TIME_SYNC_FILE):
 else:
     tsi = TimeSyncInfo()
 
-if  time.time_ns() - tsi.last_saved < 3600000000000:
+if time.time_ns() - tsi.last_saved < HOUR_NS:
     manager.load(tsi)
-else :
+else:
     manager.update_server_time()
     manager.save_to(config.TIME_SYNC_FILE)
 
