@@ -17,7 +17,6 @@ if typing.TYPE_CHECKING:
 
 import mpv
 from mpv import ShutdownError
-from PIL import Image, ImageDraw, ImageFont
 import requests
 
 import config
@@ -169,12 +168,6 @@ else:
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
-# font = ImageFont.truetype('DejaVuSans.ttf', 40)
-
-
-# overlay = player.create_image_overlay()
-# img = Image.new('RGBA', (400, 150),  (255, 255, 255, 0))
-# d = ImageDraw.Draw(img)
 
 def sync_play(time=0, play='true'):
     payload = {
