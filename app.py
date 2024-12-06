@@ -176,8 +176,6 @@ player.play(args.file)
 # img = Image.new('RGBA', (400, 150),  (255, 255, 255, 0))
 # d = ImageDraw.Draw(img)
 
-sync = 0
-
 def sync_play(time=0, play='true'):
     payload = {
         'estimatedServerTime': manager.get_server_time(),
