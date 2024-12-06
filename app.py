@@ -157,9 +157,9 @@ class HandyPlayer:
         else:
             self.client.play(payload)
 
-def setup_manager(syncer: TimeSyncer, config, client: HandyClient) -> None:
-    if os.path.exists(config.TIME_SYNC_FILE):
-        tsi = TimeSyncInfo.from_file(config.TIME_SYNC_FILE)
+def setup_manager(syncer: TimeSyncer, sync_file: str, client: HandyClient) -> None:
+    if os.path.exists(sync_file):
+        tsi = TimeSyncInfo.from_file(sync_file)
     else:
         tsi = TimeSyncInfo()
 
@@ -167,7 +167,7 @@ def setup_manager(syncer: TimeSyncer, config, client: HandyClient) -> None:
         syncer.load(tsi)
     else:
         syncer.update_server_time(client)
-        syncer.save_to(config.TIME_SYNC_FILE)
+        syncer.save_to(sync_file)
 
 def find_script(video_path: str) -> str:
     video_name = video_path.replace('.' + str.split(video_path, '.')[-1:][0], '')
@@ -207,7 +207,7 @@ print('Uploading script!')
 client.upload_script(script)
 
 
-setup_manager(syncer, config, client)
+setup_manager(syncer, config.TIME_SYNC_FILE, client)
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
