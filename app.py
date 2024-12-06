@@ -26,7 +26,6 @@ API_SECRET=config.API_SECRET
 API_ENDPOINT="https://www.handyfeeling.com/api/handy/v2/"
 
 time_sync_initial_offset = 0
-time_sync_aggregate_offset = 0
 time_sync_average_offset = 0
 time_syncs = 0
 
@@ -49,6 +48,9 @@ class TimeSyncInfo:
     initial_offset: int
 
 class TSIManager:
+
+    def __init__(self):
+        self.aggregate_offset: int = 0
 
     def save_to(self, path: str):
         if not os.path.exists(path):
@@ -81,7 +83,7 @@ class TSIManager:
         return int(time_now + time_sync_average_offset + time_sync_initial_offset)
 
     def update_server_time(self):
-        global time_sync_initial_offset, time_sync_aggregate_offset, \
+        global time_sync_initial_offset, \
                 time_sync_average_offset, time_syncs
 
         send_time = int(time.time_ns() / 1000000) # don't ask
@@ -100,8 +102,8 @@ class TSIManager:
             print(f'initial offset {time_sync_initial_offset} ms')
         else:
             offset = estimated_server_time_now - time_now - time_sync_initial_offset
-            time_sync_aggregate_offset += offset
-            time_sync_average_offset = time_sync_aggregate_offset / time_syncs
+            self.aggregate_offset += offset
+            time_sync_average_offset = self.aggregate_offset / time_syncs
 
         time_syncs += 1
         if time_syncs < 30:
