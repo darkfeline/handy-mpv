@@ -25,9 +25,6 @@ import config
 API_SECRET=config.API_SECRET
 API_ENDPOINT="https://www.handyfeeling.com/api/handy/v2/"
 
-time_sync_initial_offset = 0
-time_sync_average_offset = 0
-
 
 HEADERS = {
     'X-Connection-Key': API_SECRET
@@ -72,27 +69,26 @@ class TSIManager:
     def __init__(self):
         self.aggregate_offset: int = 0
         self.sync_count: int = 0
+        self.average_offset: float = 0
+        self.initial_offset: int = 0
 
     def save_to(self, path: str):
         tsi = TimeSyncInfo(
                 last_saved=time.time_ns(),
-                average_offset=time_sync_average_offset,
-                initial_offset=time_sync_initial_offset,
+                average_offset=self.average_offset,
+                initial_offset=self.initial_offset,
         )
         tsi.write_to(path)
 
     def load(self, tsi: TimeSyncInfo):
-        time_sync_initial_offset = tsi.average_offset
-        time_syncinitial_offset = tsi.initial_offset
+        self.average_offset = tsi.average_offset
+        self.initial_offset = tsi.initial_offset
 
     def get_server_time(self):
         time_now = int(time.time_ns() / 1000000)
-        return int(time_now + time_sync_average_offset + time_sync_initial_offset)
+        return int(time_now + self.average_offset + self.initial_offset)
 
     def update_server_time(self):
-        global time_sync_initial_offset, \
-                time_sync_average_offset
-
         send_time = int(time.time_ns() / 1000000) # don't ask
         r = requests.get(f'{API_ENDPOINT}servertime', headers=HEADERS)
         data = json.loads(r.text)
@@ -105,18 +101,18 @@ class TSIManager:
 
         # this part here, real dumb.
         if self.sync_count == 0:
-            time_sync_initial_offset = estimated_server_time_now - time_now
-            print(f'initial offset {time_sync_initial_offset} ms')
+            self.initial_offset = estimated_server_time_now - time_now
+            print(f'initial offset {self.initial_offset} ms')
         else:
-            offset = estimated_server_time_now - time_now - time_sync_initial_offset
+            offset = estimated_server_time_now - time_now - self.initial_offset
             self.aggregate_offset += offset
-            time_sync_average_offset = self.aggregate_offset / self.sync_count
+            self.average_offset = self.aggregate_offset / self.sync_count
 
         self.sync_count += 1
         if self.sync_count < 30:
             self.update_server_time()
         else:
-            print(f'we in sync, Average offset is: {int(time_sync_average_offset)} ms')
+            print(f'we in sync, Average offset is: {int(self.average_offset)} ms')
             return
 
 manager = TSIManager()
