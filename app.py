@@ -27,7 +27,6 @@ API_ENDPOINT="https://www.handyfeeling.com/api/handy/v2/"
 
 time_sync_initial_offset = 0
 time_sync_average_offset = 0
-time_syncs = 0
 
 
 HEADERS = {
@@ -51,6 +50,7 @@ class TSIManager:
 
     def __init__(self):
         self.aggregate_offset: int = 0
+        self.sync_count: int = 0
 
     def save_to(self, path: str):
         if not os.path.exists(path):
@@ -84,7 +84,7 @@ class TSIManager:
 
     def update_server_time(self):
         global time_sync_initial_offset, \
-                time_sync_average_offset, time_syncs
+                time_sync_average_offset
 
         send_time = int(time.time_ns() / 1000000) # don't ask
         r = requests.get(f'{API_ENDPOINT}servertime', headers=HEADERS)
@@ -97,16 +97,16 @@ class TSIManager:
         estimated_server_time_now = int(server_time + rtd / 2)
 
         # this part here, real dumb.
-        if time_syncs == 0:
+        if self.sync_count == 0:
             time_sync_initial_offset = estimated_server_time_now - time_now
             print(f'initial offset {time_sync_initial_offset} ms')
         else:
             offset = estimated_server_time_now - time_now - time_sync_initial_offset
             self.aggregate_offset += offset
-            time_sync_average_offset = self.aggregate_offset / time_syncs
+            time_sync_average_offset = self.aggregate_offset / self.sync_count
 
-        time_syncs += 1
-        if time_syncs < 30:
+        self.sync_count += 1
+        if self.sync_count < 30:
             self.update_server_time()
         else:
             print(f'we in sync, Average offset is: {int(time_sync_average_offset)} ms')
