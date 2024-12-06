@@ -24,8 +24,6 @@ import config
 API_SECRET=config.API_SECRET
 API_ENDPOINT="https://www.handyfeeling.com/api/handy/v2/"
 
-TIMEOUT = 10 * 1000 # 10 seconds
-
 time_sync_initial_offset = 0
 time_sync_aggregate_offset = 0
 time_sync_average_offset = 0
