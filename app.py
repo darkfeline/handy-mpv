@@ -43,11 +43,11 @@ parser.add_argument('file', metavar='file', type=str,
 
 class TSIManager:
 
-    def save_server_time(self):
-        if not os.path.exists(config.TIME_SYNC_FILE):
-            fp = open(config.TIME_SYNC_FILE, 'x')
+    def save_to(self, path: str):
+        if not os.path.exists(path):
+            fp = open(path, 'x')
             fp.close()
-        with open(config.TIME_SYNC_FILE, 'w') as f:
+        with open(path, 'w') as f:
             json.dump({
                 "last_saved": time.time_ns(),
                 "time_sync_average_offset": time_sync_average_offset,
@@ -141,7 +141,7 @@ if  time.time_ns() - saved_time['last_saved'] < 3600000000000:
     time_sync_initial_offset = saved_time['time_sync_initial_offset']
 else :
     manager.update_server_time()
-    manager.save_server_time()
+    manager.save_to(config.TIME_SYNC_FILE)
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
