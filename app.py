@@ -43,34 +43,6 @@ parser.add_argument('file', metavar='file', type=str,
 def time_ms() -> int:
     return int(time.time_ns() / 1000000)
 
-
-@dataclass
-class TimeSyncInfo:
-    last_saved: int = 0
-    average_offset: float = 0
-    initial_offset: int = 0
-
-    @staticmethod
-    def from_file(path: str) -> TimeSyncInfo:
-        with open(path, 'r') as f:
-            obj = json.load(f)
-            return TimeSyncInfo(
-                last_saved=obj['last_saved'],
-                average_offset=obj['time_sync_average_offset'],
-                initial_offset=obj['time_sync_initial_offset'],
-            )
-
-    def write_to(self, path: str) -> None:
-        if not os.path.exists(path):
-            fp = open(path, 'x')
-            fp.close()
-        with open(path, 'w') as f:
-            json.dump({
-                'last_saved': self.last_saved,
-                'time_sync_average_offset': self.average_offset,
-                'time_sync_initial_offset': self.initial_offset,
-            }, f)
-
 class HandyClient:
 
     API_ENDPOINT="https://www.handyfeeling.com/api/handy/v2/"
@@ -105,6 +77,32 @@ class HandyClient:
         r = requests.put(f'{self.API_ENDPOINT}hssp/play', json=obj, headers=self.headers)
         logger.debug('Got response from play: %r', r.text)
 
+@dataclass
+class TimeSyncInfo:
+    last_saved: int = 0
+    average_offset: float = 0
+    initial_offset: int = 0
+
+    @staticmethod
+    def from_file(path: str) -> TimeSyncInfo:
+        with open(path, 'r') as f:
+            obj = json.load(f)
+            return TimeSyncInfo(
+                last_saved=obj['last_saved'],
+                average_offset=obj['time_sync_average_offset'],
+                initial_offset=obj['time_sync_initial_offset'],
+            )
+
+    def write_to(self, path: str) -> None:
+        if not os.path.exists(path):
+            fp = open(path, 'x')
+            fp.close()
+        with open(path, 'w') as f:
+            json.dump({
+                'last_saved': self.last_saved,
+                'time_sync_average_offset': self.average_offset,
+                'time_sync_initial_offset': self.initial_offset,
+            }, f)
 
 class TSIManager:
 
