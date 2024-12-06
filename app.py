@@ -60,17 +60,20 @@ class HandyClient:
     def set_mode(self, mode: int) -> None:
         logger.debug('set_mode request')
         r = requests.put(f'{self.API_ENDPOINT}mode', json={"mode": mode}, headers=self.headers)
-        logger.debug('set_mode response: %r', r.text)
+        data = json.loads(r.text)
+        logger.debug('set_mode response: %r', data)
 
     def stop(self) -> None:
         logger.debug('stop request')
         r = requests.put(f'{self.API_ENDPOINT}hssp/stop', headers=self.headers)
-        logger.debug('stop response: %r', r.text)
+        data = json.loads(r.text)
+        logger.debug('stop response: %r', data)
 
     def play(self, obj: dict) -> None:
         logger.debug('play request')
         r = requests.put(f'{self.API_ENDPOINT}hssp/play', json=obj, headers=self.headers)
-        logger.debug('play response: %r', r.text)
+        data = json.loads(r.text)
+        logger.debug('play response: %r', data)
 
 @dataclass
 class TimeSyncInfo:
