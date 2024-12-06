@@ -21,14 +21,7 @@ import requests
 
 import config
 
-API_SECRET=config.API_SECRET
-API_ENDPOINT="https://www.handyfeeling.com/api/handy/v2/"
-
 HOUR_NS = 3600_000_000_000
-
-HEADERS = {
-    'X-Connection-Key': API_SECRET
-}
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
