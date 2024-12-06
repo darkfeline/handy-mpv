@@ -140,6 +140,18 @@ class TimeSyncer:
             print(f'we in sync, Average offset is: {int(self.average_offset)} ms')
             return
 
+    def update_with_file(self, sync_file: str, client: HandyClient) -> None:
+        if os.path.exists(sync_file):
+            tsi = TimeSyncInfo.from_file(sync_file)
+        else:
+            tsi = TimeSyncInfo()
+
+        if tsi.newer_than(time.time_ns() - HOUR_NS):
+            self.load(tsi)
+        else:
+            self.update_server_time(client)
+            self.save_to(sync_file)
+
 class HandyPlayer:
 
     def __init__(self, *, client: HandyClient, syncer: TimeSyncer):
@@ -156,18 +168,6 @@ class HandyPlayer:
             self.client.stop()
         else:
             self.client.play(payload)
-
-def setup_manager(syncer: TimeSyncer, sync_file: str, client: HandyClient) -> None:
-    if os.path.exists(sync_file):
-        tsi = TimeSyncInfo.from_file(sync_file)
-    else:
-        tsi = TimeSyncInfo()
-
-    if tsi.newer_than(time.time_ns() - HOUR_NS):
-        syncer.load(tsi)
-    else:
-        syncer.update_server_time(client)
-        syncer.save_to(sync_file)
 
 def find_script(video_path: str) -> str:
     video_name = video_path.replace('.' + str.split(video_path, '.')[-1:][0], '')
@@ -207,7 +207,7 @@ print('Uploading script!')
 client.upload_script(script)
 
 
-setup_manager(syncer, config.TIME_SYNC_FILE, client)
+syncer.update_with_file(config.TIME_SYNC_FILE, client)
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
