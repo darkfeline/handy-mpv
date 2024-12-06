@@ -37,6 +37,10 @@ parser.add_argument('file', metavar='file', type=str,
 # this code is actually really dumb, should refactor, an intern probably
 # did this. I'm just copying the JS code from the site.
 
+def time_ms() -> int:
+    return int(time.time_ns() / 1000000)
+
+
 @dataclass
 class TimeSyncInfo:
     last_saved: int = 0
@@ -85,16 +89,15 @@ class TSIManager:
         self.initial_offset = tsi.initial_offset
 
     def get_server_time(self):
-        time_now = int(time.time_ns() / 1000000)
-        return int(time_now + self.average_offset + self.initial_offset)
+        return int(time_ms() + self.average_offset + self.initial_offset)
 
     def update_server_time(self):
-        send_time = int(time.time_ns() / 1000000) # don't ask
+        send_time = time_ms()
         r = requests.get(f'{API_ENDPOINT}servertime', headers=HEADERS)
         data = json.loads(r.text)
         server_time = data['serverTime']
         print(server_time)
-        time_now = int(time.time_ns() / 1000000)
+        time_now = time_ms()
         print(time_now)
         rtd = time_now - send_time
         estimated_server_time_now = int(server_time + rtd / 2)
