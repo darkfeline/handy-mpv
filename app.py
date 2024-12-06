@@ -94,6 +94,10 @@ class HandyClient:
         r = requests.get(f'{self.API_ENDPOINT}status', headers=self.headers)
         return json.loads(r.text)
 
+    def set_mode(self, mode: int) -> None:
+        r = requests.put(f'{self.API_ENDPOINT}mode', json={"mode": mode}, headers=self.headers)
+        logger.debug('Got response from set mode: %r', r.text)
+
 
 class TSIManager:
 
@@ -163,8 +167,7 @@ if not data['mode']:
     exit()
 
 if data['mode'] != 1:
-    r = requests.put(f'{API_ENDPOINT}/mode', json={"mode": 1}, headers=HEADERS)
-    print(r.text)
+    client.set_mode(1)
 
 print('Handy connected, Uploading script!')
 
