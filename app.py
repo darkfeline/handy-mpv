@@ -193,16 +193,16 @@ setup_manager(manager, config)
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
 
-def sync_play(time: int, play=True):
+def sync_play(time: int, *, stopped: bool = False):
     payload = {
         'estimatedServerTime': manager.get_server_time(),
         'startTime': time
     }
 
-    if play:
-        client.play(payload)
-    else:
+    if stopped:
         client.stop()
+    else:
+        client.play(payload)
 
 def get_playback_time(player) -> Optional[float]:
     value = player._get_property('playback-time')
@@ -215,12 +215,12 @@ def my_up_binding(key_state, key_name, key_char):
     assert value is not None
     time_ms = int(value * 1000)
     print(time_ms)
-    sync_play(time_ms, play=False)
+    sync_play(time_ms, stopped=True)
 
 # @player.on_key_press('q')
 def my_q_binding(key_state, key_name, key_char):
     global player
-    sync_play(0, play=False)
+    sync_play(0, stopped=True)
     player.command("quit")
     del player
     os._exit(-1)
@@ -249,18 +249,18 @@ def file_restart(event):
 
 # @player.event_callback('shutdown')
 def callback_shutdown(event):
-    sync_play(0, play=False)
+    sync_play(0, stopped=True)
     player.command("quit")
     sys.exit()
 
 #@player.event_callback('pause')
 def video_pause(event):
-    sync_play(0, play=False)
+    sync_play(0, stopped=True)
 
 def video_pause_unpause(property_name, new_value):
     paused = new_value
     if paused:
-        sync_play(0, play=False)
+        sync_play(0, stopped=True)
     else:
         value = get_playback_time(player)
         if value is not None:
@@ -295,6 +295,6 @@ player.register_event_callback(on_event)
 try:
     player.wait_for_playback()
 except mpv.ShutdownError as e:
-    sync_play(0, play=False)
+    sync_play(0, stopped=True)
     del player
     exit()
