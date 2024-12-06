@@ -39,7 +39,6 @@ HEADERS = {
 parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
 parser.add_argument('file', metavar='file', type=str,
                    help='The file to play')
-parser.add_argument("--double", action="store_true", help='enable 2x speed conversion')
 
 # this code is actually really dumb, should refactor, an intern probably
 # did this. I'm just copying the JS code from the site.
@@ -106,38 +105,8 @@ def find_script(video_path):
         print(f'script found for video: {video_name}')
     return script_path
 
-def script_2x(script_file):
-    with open(script_file) as f:
-        script = json.loads(f.read())
-
-    edited = []
-    for action in script['actions']:
-        action['pos'] = 0
-        edited.append(action)
-
-    final = []
-    for x in range(len(edited)):
-        if edited[x]['pos'] == 95:
-            edited[x]['pos'] = 100
-        final.append(edited[x])
-
-        if x == len(edited) - 1:
-            break
-
-        new_pos = {}
-        new_pos['at'] = int((edited[x + 1]['at'] + edited[x]['at']) / 2)
-        new_pos['pos'] = 100
-        final.append(new_pos)
-
-    script['actions'] = final
-    return (script_file, json.dumps(script))
-
-def upload_script(script, double=False):
-
-    if not double:
-        r = requests.post("https://tugbud.kaffesoft.com/cache", files={'file': open(script, 'rb')})
-    else:
-        r = requests.post("https://tugbud.kaffesoft.com/cache", files={'file': ('script.funscript', script[1])})
+def upload_script(script):
+    r = requests.post("https://tugbud.kaffesoft.com/cache", files={'file': open(script, 'rb')})
     data = json.loads(r.text)
     print(data)
     r = requests.put(f'{API_ENDPOINT}hssp/setup', json={'url': data['url']}, headers=HEADERS)
@@ -160,10 +129,7 @@ print('Handy connected, Uploading script!')
 args = parser.parse_args()
 print(args)
 script = find_script(args.file)
-if args.double:
-    upload_script(script_2x(script), True)
-else:
-    upload_script(script)
+upload_script(script)
 
 
 saved_time = get_saved_time()
