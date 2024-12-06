@@ -56,7 +56,7 @@ class TimeSyncInfo:
                 initial_offset=obj['time_sync_initial_offset'],
             )
 
-    def write_to(self, path: str):
+    def write_to(self, path: str) -> None:
         if not os.path.exists(path):
             fp = open(path, 'x')
             fp.close()
@@ -88,7 +88,7 @@ class TSIManager:
         self.average_offset: float = 0
         self.initial_offset: int = 0
 
-    def save_to(self, path: str):
+    def save_to(self, path: str) -> None:
         tsi = TimeSyncInfo(
                 last_saved=time.time_ns(),
                 average_offset=self.average_offset,
@@ -96,14 +96,14 @@ class TSIManager:
         )
         tsi.write_to(path)
 
-    def load(self, tsi: TimeSyncInfo):
+    def load(self, tsi: TimeSyncInfo) -> None:
         self.average_offset = tsi.average_offset
         self.initial_offset = tsi.initial_offset
 
-    def get_server_time(self):
+    def get_server_time(self) -> int:
         return int(time_ms() + self.average_offset + self.initial_offset)
 
-    def update_server_time(self):
+    def update_server_time(self) -> None:
         send_time = time_ms()
         server_time = self.client.servertime()
         print(server_time)
