@@ -43,7 +43,7 @@ parser.add_argument('file', metavar='file', type=str,
 @dataclass
 class TimeSyncInfo:
     last_saved: int
-    average_offset: int
+    average_offset: float
     initial_offset: int
 
     @staticmethod
@@ -62,6 +62,17 @@ class TimeSyncInfo:
                 initial_offset=obj['time_sync_initial_offset'],
             )
 
+    def write_to(self, path: str):
+        if not os.path.exists(path):
+            fp = open(path, 'x')
+            fp.close()
+        with open(path, 'w') as f:
+            json.dump({
+                'last_saved': self.last_saved,
+                'time_sync_average_offset': self.average_offset,
+                'time_sync_initial_offset': self.initial_offset,
+            }, f)
+
 class TSIManager:
 
     def __init__(self):
@@ -69,15 +80,12 @@ class TSIManager:
         self.sync_count: int = 0
 
     def save_to(self, path: str):
-        if not os.path.exists(path):
-            fp = open(path, 'x')
-            fp.close()
-        with open(path, 'w') as f:
-            json.dump({
-                "last_saved": time.time_ns(),
-                "time_sync_average_offset": time_sync_average_offset,
-                "time_sync_initial_offset": time_sync_initial_offset
-            }, f)
+        tsi = TimeSyncInfo(
+                last_saved=time.time_ns(),
+                average_offset=time_sync_average_offset,
+                initial_offset=time_sync_initial_offset,
+        )
+        tsi.write_to(path)
 
     def get_server_time(self):
         time_now = int(time.time_ns() / 1000000)
