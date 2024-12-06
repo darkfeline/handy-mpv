@@ -9,8 +9,10 @@ import io
 import json
 import logging
 import os
+from pathlib import Path
 import sys
 import time
+import tomllib
 import typing
 
 if typing.TYPE_CHECKING:
@@ -19,14 +21,28 @@ if typing.TYPE_CHECKING:
 import mpv
 import requests
 
-import config
-
 HOUR_NS = 3600_000_000_000
 
 logger = logging.getLogger(__name__)
 
 def time_ms() -> int:
     return int(time.time_ns() / 1000000)
+
+@dataclass
+class Config:
+    api_secret: str
+    time_sync_file: str
+
+    @staticmethod
+    def load() -> Config:
+        config_dir = Path(os.getenv('XDG_CONFIG_HOME', Path.home() / '.config'))
+        config_file = config_dir / 'handy-mpv.toml'
+        with open(config_file, 'rb') as f:
+            obj = tomllib.load(f)
+        return Config(
+            api_secret=obj['api_secret'],
+            time_sync_file=obj['time_sync_file'],
+        )
 
 class HandyClient:
 
@@ -197,7 +213,9 @@ parser.add_argument('file', metavar='file', type=str,
 args = parser.parse_args()
 script = find_script(args.file)
 
-client = HandyClient(config.API_SECRET)
+config = Config.load()
+
+client = HandyClient(config.api_secret)
 
 logger.info('Getting Handy status')
 data = client.status()
@@ -212,7 +230,7 @@ logger.info('Uploading script')
 client.upload_script(script)
 
 syncer = TimeSyncer()
-syncer.update_with_file(config.TIME_SYNC_FILE, client)
+syncer.update_with_file(config.time_sync_file, client)
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 hplayer = HandyPlayer(

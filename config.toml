@@ -1,0 +1,2 @@
+api_secret="HANDY CONNECTION KEY"
+time_sync_file="/tmp/server_time.json"
