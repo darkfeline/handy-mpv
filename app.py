@@ -94,6 +94,9 @@ class TimeSyncInfo:
                 'time_sync_initial_offset': self.initial_offset,
             }, f)
 
+    def newer_than(self, time_ns: int) -> bool:
+        return self.last_saved > time_ns
+
 class TSIManager:
 
     def __init__(self, client: HandyClient):
@@ -177,7 +180,7 @@ if os.path.exists(config.TIME_SYNC_FILE):
 else:
     tsi = TimeSyncInfo()
 
-if time.time_ns() - tsi.last_saved < HOUR_NS:
+if tsi.newer_than(time.time_ns() - HOUR_NS):
     manager.load(tsi)
 else:
     manager.update_server_time()
