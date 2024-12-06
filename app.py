@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from __future__ import annotations
+
 import argparse
 from datetime import datetime
 import io
@@ -7,6 +9,10 @@ import json
 import os
 import sys
 import time
+import typing
+
+if typing.TYPE_CHECKING:
+    from typing import Optional
 
 import mpv
 from mpv import ShutdownError
@@ -193,9 +199,15 @@ def sync_play(time=0, play='true'):
     r = requests.put(f'{API_ENDPOINT}hssp/play', json=payload, headers=HEADERS)
     print(r.text)
 
+def get_playback_time(player) -> Optional[float]:
+    value = player._get_property('playback-time')
+    assert isinstance(value, float) or value is None
+    return value
+
 # @player.on_key_press('up')
 def my_up_binding(key_state, key_name, key_char):
-    value = player._get_property('playback-time')
+    value = get_playback_time(player)
+    assert value is not None
     time_ms = int(value * 1000)
     print(time_ms)
     sync_play(time_ms, 'false')
@@ -210,7 +222,8 @@ def my_q_binding(key_state, key_name, key_char):
 
 # @player.on_key_press('down')
 def my_down_binding(key_state, key_name, key_char):
-    value = player._get_property('playback-time')
+    value = get_playback_time(player)
+    assert value is not None
     time_ms = int(value * 1000)
     print(time_ms)
     sync_play(time_ms, 'true')
@@ -222,7 +235,8 @@ player.register_key_binding("down", my_down_binding)
 
 # @player.event_callback('playback-restart')
 def file_restart(event):
-    value = player._get_property('playback-time')
+    value = get_playback_time(player)
+    assert value is not None
     time_ms = int(value * 1000)
     print(time_ms)
     sync_play(time_ms)
@@ -243,7 +257,7 @@ def video_pause_unpause(property_name, new_value):
     if paused:
         sync_play(0, 'false')
     else:
-        value = player._get_property('playback-time')
+        value = get_playback_time(player)
         if value is not None:
             time_ms = int(value * 1000)
             sync_play(time_ms, 'true')
@@ -252,7 +266,8 @@ player.observe_property('pause', video_pause_unpause)
 
 #@player.event_callback('unpause')
 def video_unpause(event):
-    value = player._get_property('playback-time')
+    value = get_playback_time(player)
+    assert value is not None
     time_ms = int(value * 1000)
     sync_play(time_ms, 'true')
 
