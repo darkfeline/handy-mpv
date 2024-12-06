@@ -168,9 +168,10 @@ class TimeSyncer:
 
 class HandyPlayer:
 
-    def __init__(self, *, client: HandyClient, syncer: TimeSyncer):
+    def __init__(self, *, client: HandyClient, syncer: TimeSyncer, player):
         self.client = client
         self.syncer = syncer
+        self.player = player
 
     def sync_play(self, time: int, *, stopped: bool = False):
         payload = {
@@ -213,9 +214,12 @@ client.upload_script(script)
 syncer = TimeSyncer()
 syncer.update_with_file(config.TIME_SYNC_FILE, client)
 
-hplayer = HandyPlayer(client=client, syncer=syncer)
-
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
+hplayer = HandyPlayer(
+    client=client,
+    syncer=syncer,
+    player=player,
+)
 player.play(args.file)
 
 def get_playback_time_ms(player) -> Optional[int]:
