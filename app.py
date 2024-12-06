@@ -92,7 +92,7 @@ class TimeSyncInfo:
     def newer_than(self, time_ns: int) -> bool:
         return self.last_saved > time_ns
 
-class TSIManager:
+class TimeSyncer:
 
     def __init__(self):
         self.aggregate_offset: int = 0
@@ -142,13 +142,13 @@ class TSIManager:
 
 class HandyPlayer:
 
-    def __init__(self, *, client: HandyClient, manager: TSIManager):
+    def __init__(self, *, client: HandyClient, syncer: TimeSyncer):
         self.client = client
-        self.manager = manager
+        self.syncer = syncer
 
     def sync_play(self, time: int, *, stopped: bool = False):
         payload = {
-            'estimatedServerTime': self.manager.get_server_time(),
+            'estimatedServerTime': self.syncer.get_server_time(),
             'startTime': time,
         }
 
@@ -157,17 +157,17 @@ class HandyPlayer:
         else:
             self.client.play(payload)
 
-def setup_manager(manager: TSIManager, config, client: HandyClient) -> None:
+def setup_manager(syncer: TimeSyncer, config, client: HandyClient) -> None:
     if os.path.exists(config.TIME_SYNC_FILE):
         tsi = TimeSyncInfo.from_file(config.TIME_SYNC_FILE)
     else:
         tsi = TimeSyncInfo()
 
     if tsi.newer_than(time.time_ns() - HOUR_NS):
-        manager.load(tsi)
+        syncer.load(tsi)
     else:
-        manager.update_server_time(client)
-        manager.save_to(config.TIME_SYNC_FILE)
+        syncer.update_server_time(client)
+        syncer.save_to(config.TIME_SYNC_FILE)
 
 def find_script(video_path: str) -> str:
     video_name = video_path.replace('.' + str.split(video_path, '.')[-1:][0], '')
@@ -199,15 +199,15 @@ if data['mode'] != 1:
 
 print('Handy connected!')
 
-manager = TSIManager()
-hplayer = HandyPlayer(client=client, manager=manager)
+syncer = TimeSyncer()
+hplayer = HandyPlayer(client=client, syncer=syncer)
 
 print('Uploading script!')
 
 client.upload_script(script)
 
 
-setup_manager(manager, config, client)
+setup_manager(syncer, config, client)
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
