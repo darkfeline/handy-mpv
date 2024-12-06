@@ -200,7 +200,6 @@ if data['mode'] != 1:
 print('Handy connected!')
 
 syncer = TimeSyncer()
-hplayer = HandyPlayer(client=client, syncer=syncer)
 
 print('Uploading script!')
 
@@ -208,6 +207,8 @@ client.upload_script(script)
 
 
 syncer.update_with_file(config.TIME_SYNC_FILE, client)
+
+hplayer = HandyPlayer(client=client, syncer=syncer)
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
