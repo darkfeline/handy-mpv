@@ -5,9 +5,8 @@ from datetime import datetime
 import io
 import json
 import os
-from os.path import exists
 import sys
-from time import sleep, time_ns
+import time
 
 import mpv
 from mpv import ShutdownError
@@ -40,18 +39,18 @@ parser.add_argument("--double", action="store_true", help='enable 2x speed conve
 # did this. I'm just copying the JS code from the site.
 
 def save_server_time():
-    if not exists(config.TIME_SYNC_FILE):
+    if not os.path.exists(config.TIME_SYNC_FILE):
         fp = open(config.TIME_SYNC_FILE, 'x')
         fp.close()
     with open(config.TIME_SYNC_FILE, 'w') as f:
         json.dump({
-            "last_saved": time_ns(),
+            "last_saved": time.time_ns(),
             "time_sync_average_offset": time_sync_average_offset,
             "time_sync_initial_offset": time_sync_initial_offset
         }, f)
 
 def get_saved_time():
-    if not exists(config.TIME_SYNC_FILE):
+    if not os.path.exists(config.TIME_SYNC_FILE):
         fp = open(config.TIME_SYNC_FILE, 'w')
         fp.write('{"last_saved": 0}')
         fp.close()
@@ -60,19 +59,19 @@ def get_saved_time():
         return time
 
 def get_server_time():
-    time_now = int(time_ns() / 1000000)
+    time_now = int(time.time_ns() / 1000000)
     return int(time_now + time_sync_average_offset + time_sync_initial_offset)
 
 def update_server_time():
     global time_sync_initial_offset, time_sync_aggregate_offset, \
             time_sync_average_offset, time_syncs
 
-    send_time = int(time_ns() / 1000000) # don't ask
+    send_time = int(time.time_ns() / 1000000) # don't ask
     r = requests.get(f'{API_ENDPOINT}servertime', headers=HEADERS)
     data = json.loads(r.text)
     server_time = data['serverTime']
     print(server_time)
-    time_now = int(time_ns() / 1000000)
+    time_now = int(time.time_ns() / 1000000)
     print(time_now)
     rtd = time_now - send_time
     estimated_server_time_now = int(server_time + rtd / 2)
@@ -163,7 +162,7 @@ else:
 
 saved_time = get_saved_time()
 
-if  time_ns() - saved_time['last_saved'] < 3600000000000:
+if  time.time_ns() - saved_time['last_saved'] < 3600000000000:
     time_sync_average_offset = saved_time['time_sync_average_offset']
     time_sync_initial_offset = saved_time['time_sync_initial_offset']
 else :
