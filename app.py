@@ -48,8 +48,6 @@ class TimeSyncInfo:
 
     @staticmethod
     def from_file(path: str) -> TimeSyncInfo:
-        if not os.path.exists(path):
-            return TimeSyncInfo()
         with open(path, 'r') as f:
             obj = json.load(f)
             return TimeSyncInfo(
@@ -154,7 +152,10 @@ script = find_script(args.file)
 upload_script(script)
 
 
-tsi = TimeSyncInfo.from_file(config.TIME_SYNC_FILE)
+if os.path.exists(config.TIME_SYNC_FILE):
+    tsi = TimeSyncInfo.from_file(config.TIME_SYNC_FILE)
+else:
+    tsi = TimeSyncInfo()
 
 if  time.time_ns() - tsi.last_saved < 3600000000000:
     time_sync_average_offset = tsi.average_offset
