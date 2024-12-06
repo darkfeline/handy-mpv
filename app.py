@@ -90,6 +90,11 @@ class HandyClient:
         r = requests.put(f'{self.API_ENDPOINT}hssp/setup', json={'url': data['url']}, headers=self.headers)
         data = json.loads(r.text)
 
+    def status(self) -> dict:
+        r = requests.get(f'{self.API_ENDPOINT}status', headers=self.headers)
+        return json.loads(r.text)
+
+
 class TSIManager:
 
     def __init__(self, client: HandyClient):
@@ -151,8 +156,7 @@ def find_script(video_path):
     return script_path
 
 print('Getting Handy Status')
-r = requests.get(f'{API_ENDPOINT}status', headers=HEADERS)
-data = json.loads(r.text)
+data = client.status()
 
 if not data['mode']:
     print('Couldn\'t Sync with Handy, Exiting.')
