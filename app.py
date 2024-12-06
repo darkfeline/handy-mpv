@@ -94,8 +94,7 @@ class TimeSyncInfo:
 
 class TSIManager:
 
-    def __init__(self, client: HandyClient):
-        self.client = client
+    def __init__(self):
         self.aggregate_offset: int = 0
         self.sync_count: int = 0
         self.average_offset: float = 0
@@ -116,9 +115,9 @@ class TSIManager:
     def get_server_time(self) -> int:
         return int(time_ms() + self.average_offset + self.initial_offset)
 
-    def update_server_time(self) -> None:
+    def update_server_time(self, client: HandyClient) -> None:
         send_time = time_ms()
-        server_time = self.client.servertime()
+        server_time = client.servertime()
         print(server_time)
         time_now = time_ms()
         print(time_now)
@@ -136,7 +135,7 @@ class TSIManager:
 
         self.sync_count += 1
         if self.sync_count < 30:
-            self.update_server_time()
+            self.update_server_time(client)
         else:
             print(f'we in sync, Average offset is: {int(self.average_offset)} ms')
             return
@@ -158,7 +157,7 @@ class HandyPlayer:
         else:
             self.client.play(payload)
 
-def setup_manager(manager: TSIManager, config) -> None:
+def setup_manager(manager: TSIManager, config, client: HandyClient) -> None:
     if os.path.exists(config.TIME_SYNC_FILE):
         tsi = TimeSyncInfo.from_file(config.TIME_SYNC_FILE)
     else:
@@ -167,7 +166,7 @@ def setup_manager(manager: TSIManager, config) -> None:
     if tsi.newer_than(time.time_ns() - HOUR_NS):
         manager.load(tsi)
     else:
-        manager.update_server_time()
+        manager.update_server_time(client)
         manager.save_to(config.TIME_SYNC_FILE)
 
 def find_script(video_path: str) -> str:
@@ -200,7 +199,7 @@ if data['mode'] != 1:
 
 print('Handy connected!')
 
-manager = TSIManager(client)
+manager = TSIManager()
 hplayer = HandyPlayer(client=client, manager=manager)
 
 print('Uploading script!')
@@ -208,7 +207,7 @@ print('Uploading script!')
 client.upload_script(script)
 
 
-setup_manager(manager, config)
+setup_manager(manager, config, client)
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
