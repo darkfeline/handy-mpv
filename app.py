@@ -46,6 +46,22 @@ class TimeSyncInfo:
     average_offset: int
     initial_offset: int
 
+    @staticmethod
+    def from_file(path: str) -> TimeSyncInfo:
+        if not os.path.exists(path):
+            return TimeSyncInfo(
+                last_saved=0,
+                average_offset=0,
+                initial_offset=0,
+            )
+        with open(path, 'r') as f:
+            obj = json.load(f)
+            return TimeSyncInfo(
+                last_saved=obj['last_saved'],
+                average_offset=obj['time_sync_average_offset'],
+                initial_offset=obj['time_sync_initial_offset'],
+            )
+
 class TSIManager:
 
     def __init__(self):
@@ -62,21 +78,6 @@ class TSIManager:
                 "time_sync_average_offset": time_sync_average_offset,
                 "time_sync_initial_offset": time_sync_initial_offset
             }, f)
-
-    def load(self, path: str) -> TimeSyncInfo:
-        if not os.path.exists(path):
-            return TimeSyncInfo(
-                last_saved=0,
-                average_offset=0,
-                initial_offset=0,
-            )
-        with open(path, 'r') as f:
-            obj = json.load(f)
-            return TimeSyncInfo(
-                last_saved=obj['last_saved'],
-                average_offset=obj['time_sync_average_offset'],
-                initial_offset=obj['time_sync_initial_offset'],
-            )
 
     def get_server_time(self):
         time_now = int(time.time_ns() / 1000000)
@@ -149,7 +150,7 @@ script = find_script(args.file)
 upload_script(script)
 
 
-tsi = manager.load(config.TIME_SYNC_FILE)
+tsi = TimeSyncInfo.from_file(config.TIME_SYNC_FILE)
 
 if  time.time_ns() - tsi.last_saved < 3600000000000:
     time_sync_average_offset = tsi.average_offset
