@@ -141,6 +141,19 @@ class TSIManager:
             print(f'we in sync, Average offset is: {int(self.average_offset)} ms')
             return
 
+def setup_manager(manager: TSIManager, config) -> None:
+    if os.path.exists(config.TIME_SYNC_FILE):
+        tsi = TimeSyncInfo.from_file(config.TIME_SYNC_FILE)
+    else:
+        tsi = TimeSyncInfo()
+
+    if tsi.newer_than(time.time_ns() - HOUR_NS):
+        manager.load(tsi)
+    else:
+        manager.update_server_time()
+        manager.save_to(config.TIME_SYNC_FILE)
+
+
 logging.basicConfig(level=logging.DEBUG)
 parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
 parser.add_argument('file', metavar='file', type=str,
@@ -175,16 +188,7 @@ script = find_script(args.file)
 client.upload_script(script)
 
 
-if os.path.exists(config.TIME_SYNC_FILE):
-    tsi = TimeSyncInfo.from_file(config.TIME_SYNC_FILE)
-else:
-    tsi = TimeSyncInfo()
-
-if tsi.newer_than(time.time_ns() - HOUR_NS):
-    manager.load(tsi)
-else:
-    manager.update_server_time()
-    manager.save_to(config.TIME_SYNC_FILE)
+setup_manager(manager, config)
 
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
