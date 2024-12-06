@@ -81,6 +81,10 @@ class TSIManager:
         )
         tsi.write_to(path)
 
+    def load(self, tsi: TimeSyncInfo):
+        time_sync_initial_offset = tsi.average_offset
+        time_syncinitial_offset = tsi.initial_offset
+
     def get_server_time(self):
         time_now = int(time.time_ns() / 1000000)
         return int(time_now + time_sync_average_offset + time_sync_initial_offset)
@@ -158,8 +162,7 @@ else:
     tsi = TimeSyncInfo()
 
 if  time.time_ns() - tsi.last_saved < 3600000000000:
-    time_sync_average_offset = tsi.average_offset
-    time_sync_initial_offset = tsi.initial_offset
+    manager.load(tsi)
 else :
     manager.update_server_time()
     manager.save_to(config.TIME_SYNC_FILE)
