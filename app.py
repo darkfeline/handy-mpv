@@ -101,6 +101,10 @@ class HandyClient:
     def stop(self) -> None:
         r = requests.put(f'{self.API_ENDPOINT}hssp/stop', headers=self.headers)
 
+    def play(self, obj: dict) -> None:
+        r = requests.put(f'{self.API_ENDPOINT}hssp/play', json=obj, headers=self.headers)
+        logger.debug('Got response from play: %r', r.text)
+
 
 class TSIManager:
 
@@ -203,9 +207,7 @@ def sync_play(time=0, play='true'):
     if play == 'false':
         client.stop()
         return
-
-    r = requests.put(f'{API_ENDPOINT}hssp/play', json=payload, headers=HEADERS)
-    print(r.text)
+    client.play(payload)
 
 def get_playback_time(player) -> Optional[float]:
     value = player._get_property('playback-time')
