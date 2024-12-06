@@ -79,6 +79,13 @@ class HandyClient:
         data = json.loads(r.text)
         return data['serverTime']
 
+    def upload_script(self, path: str) -> None:
+        r = requests.post("https://tugbud.kaffesoft.com/cache", files={'file': open(path, 'rb')})
+        data = json.loads(r.text)
+        print(data)
+        r = requests.put(f'{self.API_ENDPOINT}hssp/setup', json={'url': data['url']}, headers=self.headers)
+        data = json.loads(r.text)
+
 class TSIManager:
 
     def __init__(self, client: HandyClient):
@@ -139,13 +146,6 @@ def find_script(video_path):
         print(f'script found for video: {video_name}')
     return script_path
 
-def upload_script(script):
-    r = requests.post("https://tugbud.kaffesoft.com/cache", files={'file': open(script, 'rb')})
-    data = json.loads(r.text)
-    print(data)
-    r = requests.put(f'{API_ENDPOINT}hssp/setup', json={'url': data['url']}, headers=HEADERS)
-    data = json.loads(r.text)
-
 print('Getting Handy Status')
 r = requests.get(f'{API_ENDPOINT}status', headers=HEADERS)
 data = json.loads(r.text)
@@ -163,7 +163,7 @@ print('Handy connected, Uploading script!')
 args = parser.parse_args()
 print(args)
 script = find_script(args.file)
-upload_script(script)
+client.upload_script(script)
 
 
 if os.path.exists(config.TIME_SYNC_FILE):
