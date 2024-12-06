@@ -36,31 +36,41 @@ class HandyClient:
         self.headers = {'X-Connection-Key': api_secret}
 
     def servertime(self) -> int:
+        logger.debug('handyclient: servertime request')
         r = requests.get(f'{self.API_ENDPOINT}servertime', headers=self.headers)
         data = json.loads(r.text)
+        logger.debug('handyclient: servertime response: %r', data)
         return data['serverTime']
 
     def upload_script(self, path: str) -> None:
+        logger.debug('handyclient: upload_script request: %r', path)
         r = requests.post("https://tugbud.kaffesoft.com/cache", files={'file': open(path, 'rb')})
         data = json.loads(r.text)
-        logger.debug('Got response from cache %r', data)
+        logger.debug('handyclient: upload_script response: %r', data)
         r = requests.put(f'{self.API_ENDPOINT}hssp/setup', json={'url': data['url']}, headers=self.headers)
         data = json.loads(r.text)
 
     def status(self) -> dict:
+        logger.debug('handyclient: status request')
         r = requests.get(f'{self.API_ENDPOINT}status', headers=self.headers)
-        return json.loads(r.text)
+        data = json.loads(r.text)
+        logger.debug('handyclient: status response: %r', data)
+        return data
 
     def set_mode(self, mode: int) -> None:
+        logger.debug('handyclient: set mode request')
         r = requests.put(f'{self.API_ENDPOINT}mode', json={"mode": mode}, headers=self.headers)
-        logger.debug('Got response from set mode: %r', r.text)
+        logger.debug('handyclient: set mode response: %r', r.text)
 
     def stop(self) -> None:
+        logger.debug('handyclient: stop request')
         r = requests.put(f'{self.API_ENDPOINT}hssp/stop', headers=self.headers)
+        logger.debug('handyclient: stop response: %r', r.text)
 
     def play(self, obj: dict) -> None:
+        logger.debug('handyclient: play request')
         r = requests.put(f'{self.API_ENDPOINT}hssp/play', json=obj, headers=self.headers)
-        logger.debug('Got response from play: %r', r.text)
+        logger.debug('handyclient: play response: %r', r.text)
 
 @dataclass
 class TimeSyncInfo:
@@ -116,18 +126,19 @@ class TimeSyncer:
         return int(time_ms() + self.average_offset + self.initial_offset)
 
     def update_server_time(self, client: HandyClient) -> None:
+        logger.debug('Updating server time')
         send_time = time_ms()
         server_time = client.servertime()
-        print(server_time)
+        logger.debug('Got server time %r', server_time)
         time_now = time_ms()
-        print(time_now)
+        logger.debug('Got current time %r', time_now)
         rtd = time_now - send_time
         estimated_server_time_now = int(server_time + rtd / 2)
 
         # this part here, real dumb.
         if self.sync_count == 0:
             self.initial_offset = estimated_server_time_now - time_now
-            print(f'initial offset {self.initial_offset} ms')
+            logger.debug('Got initial offset %r ms', self.initial_offset)
         else:
             offset = estimated_server_time_now - time_now - self.initial_offset
             self.aggregate_offset += offset
@@ -137,7 +148,7 @@ class TimeSyncer:
         if self.sync_count < 30:
             self.update_server_time(client)
         else:
-            print(f'we in sync, Average offset is: {int(self.average_offset)} ms')
+            logger.debug('Synced, average offset: %r ms', self.average_offset)
             return
 
     def update_with_file(self, sync_file: str, client: HandyClient) -> None:
@@ -172,8 +183,6 @@ class HandyPlayer:
 def find_script(video_path: str) -> str:
     video_name = video_path.replace('.' + str.split(video_path, '.')[-1:][0], '')
     script_path = f'{video_name}.funscript'
-    if (os.path.exists(script_path)):
-        print(f'script found for video: {video_name}')
     return script_path
 
 
@@ -182,30 +191,23 @@ parser = argparse.ArgumentParser(description='Handy MPV sync Utility')
 parser.add_argument('file', metavar='file', type=str,
                    help='The file to play')
 args = parser.parse_args()
-print(args)
 script = find_script(args.file)
 
 client = HandyClient(config.API_SECRET)
 
-print('Getting Handy Status')
+logger.info('Getting Handy status')
 data = client.status()
-
 if not data['mode']:
-    print('Couldn\'t Sync with Handy, Exiting.')
+    logger.error('Could not sync with Handy')
     exit()
-
 if data['mode'] != 1:
     client.set_mode(1)
+logger.info('Connected to Handy')
 
-print('Handy connected!')
-
-syncer = TimeSyncer()
-
-print('Uploading script!')
-
+logger.info('Uploading script')
 client.upload_script(script)
 
-
+syncer = TimeSyncer()
 syncer.update_with_file(config.TIME_SYNC_FILE, client)
 
 hplayer = HandyPlayer(client=client, syncer=syncer)
