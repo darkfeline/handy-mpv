@@ -16,7 +16,6 @@ if typing.TYPE_CHECKING:
     from typing import Optional
 
 import mpv
-from mpv import ShutdownError
 import requests
 
 import config
@@ -272,7 +271,7 @@ player.register_event_callback(on_event)
 
 try:
     player.wait_for_playback()
-except ShutdownError as e:
+except mpv.ShutdownError as e:
     sync_play(0, 'false')
     del player
     exit()
