@@ -189,16 +189,16 @@ else:
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
 
-def sync_play(time=0, play='true'):
+def sync_play(time=0, play=True):
     payload = {
         'estimatedServerTime': manager.get_server_time(),
         'startTime': time
     }
 
-    if play == 'false':
+    if play:
+        client.play(payload)
+    else:
         client.stop()
-        return
-    client.play(payload)
 
 def get_playback_time(player) -> Optional[float]:
     value = player._get_property('playback-time')
@@ -211,12 +211,12 @@ def my_up_binding(key_state, key_name, key_char):
     assert value is not None
     time_ms = int(value * 1000)
     print(time_ms)
-    sync_play(time_ms, 'false')
+    sync_play(time_ms, play=False)
 
 # @player.on_key_press('q')
 def my_q_binding(key_state, key_name, key_char):
     global player
-    sync_play(0, 'false')
+    sync_play(0, play=False)
     player.command("quit")
     del player
     os._exit(-1)
@@ -227,7 +227,7 @@ def my_down_binding(key_state, key_name, key_char):
     assert value is not None
     time_ms = int(value * 1000)
     print(time_ms)
-    sync_play(time_ms, 'true')
+    sync_play(time_ms)
 
 
 player.register_key_binding("up", my_up_binding)
@@ -245,23 +245,23 @@ def file_restart(event):
 
 # @player.event_callback('shutdown')
 def callback_shutdown(event):
-    sync_play(0, 'false')
+    sync_play(0, play=False)
     player.command("quit")
     sys.exit()
 
 #@player.event_callback('pause')
 def video_pause(event):
-    sync_play(0, 'false')
+    sync_play(0, play=False)
 
 def video_pause_unpause(property_name, new_value):
     paused = new_value
     if paused:
-        sync_play(0, 'false')
+        sync_play(0, play=False)
     else:
         value = get_playback_time(player)
         if value is not None:
             time_ms = int(value * 1000)
-            sync_play(time_ms, 'true')
+            sync_play(time_ms)
 
 player.observe_property('pause', video_pause_unpause)
 
@@ -270,7 +270,7 @@ def video_unpause(event):
     value = get_playback_time(player)
     assert value is not None
     time_ms = int(value * 1000)
-    sync_play(time_ms, 'true')
+    sync_play(time_ms)
 
 
 def on_event(event):
@@ -291,6 +291,6 @@ player.register_event_callback(on_event)
 try:
     player.wait_for_playback()
 except mpv.ShutdownError as e:
-    sync_play(0, 'false')
+    sync_play(0, play=False)
     del player
     exit()
