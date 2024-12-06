@@ -193,7 +193,7 @@ setup_manager(manager, config)
 player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 player.play(args.file)
 
-def sync_play(time=0, play=True):
+def sync_play(time: int, play=True):
     payload = {
         'estimatedServerTime': manager.get_server_time(),
         'startTime': time
