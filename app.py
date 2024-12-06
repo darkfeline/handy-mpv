@@ -259,7 +259,7 @@ def my_q_binding(key_state, key_name, key_char):
     global player
     hplayer.sync_play(0, stopped=True)
     player.command("quit")
-    del player
+    player.terminate()
     os._exit(-1)
 
 # @player.on_key_press('down')
@@ -329,5 +329,5 @@ try:
     player.wait_for_playback()
 except mpv.ShutdownError as e:
     hplayer.sync_play(0, stopped=True)
-    del player
+    player.terminate()
     exit()
