@@ -187,9 +187,6 @@ print(args)
 script = find_script(args.file)
 
 client = HandyClient(config.API_SECRET)
-manager = TSIManager(client)
-hplayer = HandyPlayer(client=client, manager=manager)
-
 
 print('Getting Handy Status')
 data = client.status()
@@ -201,7 +198,12 @@ if not data['mode']:
 if data['mode'] != 1:
     client.set_mode(1)
 
-print('Handy connected, Uploading script!')
+print('Handy connected!')
+
+manager = TSIManager(client)
+hplayer = HandyPlayer(client=client, manager=manager)
+
+print('Uploading script!')
 
 client.upload_script(script)
 
