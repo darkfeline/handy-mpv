@@ -98,6 +98,9 @@ class HandyClient:
         r = requests.put(f'{self.API_ENDPOINT}mode', json={"mode": mode}, headers=self.headers)
         logger.debug('Got response from set mode: %r', r.text)
 
+    def stop(self) -> None:
+        r = requests.put(f'{self.API_ENDPOINT}hssp/stop', headers=self.headers)
+
 
 class TSIManager:
 
@@ -198,7 +201,7 @@ def sync_play(time=0, play='true'):
     }
 
     if play == 'false':
-        r = requests.put(f'{API_ENDPOINT}hssp/stop', headers=HEADERS)
+        client.stop()
         return
 
     r = requests.put(f'{API_ENDPOINT}hssp/play', json=payload, headers=HEADERS)
