@@ -201,6 +201,16 @@ class HandyPlayer:
         else:
             self.client.play(payload)
 
+    def attach_to(self, player: mpv.MPV):
+        player.register_key_binding("up", self._up_binding)
+
+    def _up_binding(self, key_state, key_name, key_char):
+        time_ms = get_playback_time_ms(player)
+        assert time_ms is not None
+        print(time_ms)
+        self.sync_play(time_ms, stopped=True)
+
+
 def find_script(video_path: str) -> str:
     video_name = video_path.replace('.' + str.split(video_path, '.')[-1:][0], '')
     script_path = f'{video_name}.funscript'
@@ -247,12 +257,7 @@ hplayer = HandyPlayer(
     player=player,
 )
 player.play(args.file)
-
-# @player.on_key_press('up')
-def my_up_binding(key_state, key_name, key_char):
-    time_ms = get_playback_time_ms(player)
-    assert time_ms is not None
-    hplayer.sync_play(time_ms, stopped=True)
+hplayer.attach_to(player)
 
 # @player.on_key_press('q')
 def my_q_binding(key_state, key_name, key_char):
@@ -269,7 +274,6 @@ def my_down_binding(key_state, key_name, key_char):
     hplayer.sync_play(time_ms)
 
 
-player.register_key_binding("up", my_up_binding)
 player.register_key_binding("q", my_q_binding)
 player.register_key_binding("down", my_down_binding)
 
