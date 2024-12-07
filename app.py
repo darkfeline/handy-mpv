@@ -190,6 +190,7 @@ class HandyPlayer:
         self.player = player
 
     def sync_play(self, time: int, *, stopped: bool = False):
+        logger.debug('sync_play: %r, %r', time, stopped)
         payload = {
             'estimatedServerTime': self.syncer.get_server_time(),
             'startTime': time,
@@ -251,7 +252,6 @@ player.play(args.file)
 def my_up_binding(key_state, key_name, key_char):
     time_ms = get_playback_time_ms(player)
     assert time_ms is not None
-    print(time_ms)
     hplayer.sync_play(time_ms, stopped=True)
 
 # @player.on_key_press('q')
@@ -266,7 +266,6 @@ def my_q_binding(key_state, key_name, key_char):
 def my_down_binding(key_state, key_name, key_char):
     time_ms = get_playback_time_ms(player)
     assert time_ms is not None
-    print(time_ms)
     hplayer.sync_play(time_ms)
 
 
@@ -278,9 +277,7 @@ player.register_key_binding("down", my_down_binding)
 def file_restart(event):
     time_ms = get_playback_time_ms(player)
     assert time_ms is not None
-    print(time_ms)
     hplayer.sync_play(time_ms)
-    print(f'Now playing at {time_ms}s')
 
 # @player.event_callback('shutdown')
 def callback_shutdown(event):
