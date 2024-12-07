@@ -184,10 +184,10 @@ class TimeSyncer:
 
 class HandyPlayer:
 
-    def __init__(self, *, client: HandyClient, syncer: TimeSyncer, player):
+    def __init__(self, *, client: HandyClient, syncer: TimeSyncer):
         self.client = client
         self.syncer = syncer
-        self.player = player
+        self.player: Optional[mpv.MPV] = None
 
     def sync_play(self, time: int, *, stopped: bool = False):
         logger.debug('sync_play: %r, %r', time, stopped)
@@ -202,6 +202,7 @@ class HandyPlayer:
             self.client.play(payload)
 
     def attach_to(self, player: mpv.MPV):
+        self.player = player
         player.register_key_binding("up", self._up_binding)
 
     def _up_binding(self, key_state, key_name, key_char):
@@ -254,7 +255,6 @@ player = mpv.MPV(input_default_bindings=True, input_vo_keyboard=True, osc=True)
 hplayer = HandyPlayer(
     client=client,
     syncer=syncer,
-    player=player,
 )
 player.play(args.file)
 hplayer.attach_to(player)
