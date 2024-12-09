@@ -329,5 +329,5 @@ try:
     player.wait_for_playback()
 except mpv.ShutdownError as e:
     hplayer.sync_play(0, stopped=True)
-    player.terminate()
+    player.quit()
     exit()
