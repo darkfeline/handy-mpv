@@ -210,8 +210,7 @@ class HandyPlayer:
         self.sync_play(0, stopped=True)
         assert self.player is not None
         self.player.command("quit")
-        self.player.terminate()
-        os._exit(-1)
+        self.player.quit()
 
     def _s_binding(self, key_state, key_name, key_char):
         time_ms = get_playback_time_ms(player)
@@ -318,5 +317,4 @@ try:
     player.wait_for_playback()
 except mpv.ShutdownError as e:
     hplayer.sync_play(0, stopped=True)
-    player.quit()
-    exit()
+    player.terminate()
