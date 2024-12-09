@@ -205,6 +205,7 @@ class HandyPlayer:
         self.player = player
         player.register_key_binding("up", self._up_binding)
         player.register_key_binding("q", self._q_binding)
+        player.register_key_binding("down", self._down_binding)
 
     def _up_binding(self, key_state, key_name, key_char):
         time_ms = get_playback_time_ms(player)
@@ -219,6 +220,10 @@ class HandyPlayer:
         self.player.terminate()
         os._exit(-1)
 
+    def _down_binding(self, key_state, key_name, key_char):
+        time_ms = get_playback_time_ms(player)
+        assert time_ms is not None
+        self.sync_play(time_ms)
 
 def find_script(video_path: str) -> str:
     video_name = video_path.replace('.' + str.split(video_path, '.')[-1:][0], '')
@@ -266,15 +271,6 @@ hplayer = HandyPlayer(
 )
 player.play(args.file)
 hplayer.attach_to(player)
-
-# @player.on_key_press('down')
-def my_down_binding(key_state, key_name, key_char):
-    time_ms = get_playback_time_ms(player)
-    assert time_ms is not None
-    hplayer.sync_play(time_ms)
-
-
-player.register_key_binding("down", my_down_binding)
 
 # @player.event_callback('playback-restart')
 def file_restart(event):
