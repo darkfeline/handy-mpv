@@ -314,6 +314,5 @@ player.register_event_callback(on_event)
 
 try:
     player.wait_for_playback()
-except mpv.ShutdownError as e:
+except Exception:
     hplayer.sync_play(0, stopped=True)
-    player.terminate()
