@@ -7,9 +7,7 @@ Simple script to play funscripts using mpv and the power of python.
 ```
 Q : Quit application
 
-up arrow: pause script playback but keep video playing.
-
-down arrow: Re-sync script / restart script playback. use this if for some reason your script becomes out of sync.
+S: Re-sync script / restart script playback. use this if for some reason your script becomes out of sync.
 
 all other mpv shortcuts should work as inteded.
 

@@ -203,15 +203,8 @@ class HandyPlayer:
 
     def attach_to(self, player: mpv.MPV):
         self.player = player
-        player.register_key_binding("up", self._up_binding)
         player.register_key_binding("q", self._q_binding)
-        player.register_key_binding("down", self._down_binding)
-
-    def _up_binding(self, key_state, key_name, key_char):
-        time_ms = get_playback_time_ms(player)
-        assert time_ms is not None
-        print(time_ms)
-        self.sync_play(time_ms, stopped=True)
+        player.register_key_binding("s", self._s_binding)
 
     def _q_binding(self, key_state, key_name, key_char):
         self.sync_play(0, stopped=True)
@@ -220,7 +213,7 @@ class HandyPlayer:
         self.player.terminate()
         os._exit(-1)
 
-    def _down_binding(self, key_state, key_name, key_char):
+    def _s_binding(self, key_state, key_name, key_char):
         time_ms = get_playback_time_ms(player)
         assert time_ms is not None
         self.sync_play(time_ms)
