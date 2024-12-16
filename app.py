@@ -242,9 +242,6 @@ client = HandyClient(config.api_secret)
 
 logger.info('Getting Handy status')
 data = client.status()
-if not data['mode']:
-    logger.error('Could not sync with Handy')
-    exit()
 if data['mode'] != 1:
     client.set_mode(1)
 logger.info('Connected to Handy')
