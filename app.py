@@ -164,7 +164,7 @@ class TimeSyncer:
             self.average_offset = self.aggregate_offset / self.sync_count
 
         self.sync_count += 1
-        if self.sync_count < 30:
+        if self.sync_count < 15:
             self.update_server_time(client)
         else:
             logger.debug('Synced, average offset: %r ms', self.average_offset)
