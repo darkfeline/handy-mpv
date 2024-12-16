@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 import io
 import json
 import logging
@@ -43,6 +44,12 @@ class Config:
             api_secret=obj['api_secret'],
             time_sync_file=obj['time_sync_file'],
         )
+
+class Mode(Enum):
+    HAMP = 0
+    HSSP = 1
+    HDSP = 2
+    MAINTENANCE = 3
 
 class HandyClient:
 
@@ -242,8 +249,8 @@ client = HandyClient(config.api_secret)
 
 logger.info('Getting Handy status')
 data = client.status()
-if data['mode'] != 1:
-    client.set_mode(1)
+if data['mode'] != Mode.HSSP:
+    client.set_mode(Mode.HSSP)
 logger.info('Connected to Handy')
 
 logger.info('Uploading script')
